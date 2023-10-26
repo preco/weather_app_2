@@ -1,0 +1,14 @@
+<.simple_form :let={f} for={@changeset} action={@action}>
+  <.error :if={@changeset.action}>
+    Oops, something went wrong! Please check the errors below.
+  </.error>
+  <.input field={f[:temperature]} type="number" label="Temperature" step="any" />
+  <.input field={f[:humidity]} type="number" label="Humidity" step="any" />
+  <.input field={f[:atmospheric_pressure]} type="number" label="Atmospheric pressure" step="any" />
+  <.input field={f[:wind_speed]} type="number" label="Wind speed" step="any" />
+  <.input field={f[:wind_direction]} type="text" label="Wind direction" />
+  <.input field={f[:river_level]} type="number" label="River level" step="any" />
+  <:actions>
+    <.button>Save Measurement</.button>
+  </:actions>
+</.simple_form>

@@ -1,0 +1,29 @@
+<.header>
+  Listing Measurements
+  <:actions>
+    <.link href={~p"/measurements/new"}>
+      <.button>New Measurement</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.table id="measurements" rows={@measurements} row_click={&JS.navigate(~p"/measurements/#{&1}")}>
+  <:col :let={measurement} label="Temperatura"><%= measurement.temperature %></:col>
+  <:col :let={measurement} label="Umidade"><%= measurement.humidity %></:col>
+  <:col :let={measurement} label="Pressão atmosférica"><%= measurement.atmospheric_pressure %></:col>
+  <:col :let={measurement} label="Velocidade do vento"><%= measurement.wind_speed %></:col>
+  <:col :let={measurement} label="Direção do vento"><%= measurement.wind_direction %></:col>
+  <:col :let={measurement} label="Nível do rio"><%= measurement.river_level %></:col>
+  <:col :let={measurement} label="Horário da medição"><%= measurement.inserted_at %></:col>
+  <:action :let={measurement}>
+    <div class="sr-only">
+      <.link navigate={~p"/measurements/#{measurement}"}>Show</.link>
+    </div>
+    <.link navigate={~p"/measurements/#{measurement}/edit"}>Edit</.link>
+  </:action>
+  <:action :let={measurement}>
+    <.link href={~p"/measurements/#{measurement}"} method="delete" data-confirm="Are you sure?">
+      Delete
+    </.link>
+  </:action>
+</.table>
