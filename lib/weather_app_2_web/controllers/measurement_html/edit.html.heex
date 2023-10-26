@@ -1,0 +1,8 @@
+<.header>
+  Edit Measurement <%= @measurement.id %>
+  <:subtitle>Use this form to manage measurement records in your database.</:subtitle>
+</.header>
+
+<.measurement_form changeset={@changeset} action={~p"/measurements/#{@measurement}"} />
+
+<.back navigate={~p"/measurements"}>Back to measurements</.back>

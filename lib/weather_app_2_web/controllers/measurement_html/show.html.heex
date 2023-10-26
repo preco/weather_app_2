@@ -1,0 +1,20 @@
+<.header>
+  Measurement <%= @measurement.id %>
+  <:subtitle>This is a measurement record from your database.</:subtitle>
+  <:actions>
+    <.link href={~p"/measurements/#{@measurement}/edit"}>
+      <.button>Edit measurement</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.list>
+  <:item title="Temperature"><%= @measurement.temperature %></:item>
+  <:item title="Humidity"><%= @measurement.humidity %></:item>
+  <:item title="Atmospheric pressure"><%= @measurement.atmospheric_pressure %></:item>
+  <:item title="Wind speed"><%= @measurement.wind_speed %></:item>
+  <:item title="Wind direction"><%= @measurement.wind_direction %></:item>
+  <:item title="River level"><%= @measurement.river_level %></:item>
+</.list>
+
+<.back navigate={~p"/measurements"}>Back to measurements</.back>
