@@ -1,0 +1,24 @@
+<.header>
+  Listing Daily measurements
+  <:actions>
+    <.link href={~p"/daily_measurements/new"}>
+      <.button>New Daily measurement</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.table id="daily_measurements" rows={@daily_measurements} row_click={&JS.navigate(~p"/daily_measurements/#{&1}")}>
+  <:col :let={daily_measurement} label="Precipitation of the day"><%= daily_measurement.precipitation_of_the_day %></:col>
+  <:col :let={daily_measurement} label="Data da medição"><%= WeatherApp2.Utils.formatted_date(daily_measurement.inserted_at) %></:col>
+  <:action :let={daily_measurement}>
+    <div class="sr-only">
+      <.link navigate={~p"/daily_measurements/#{daily_measurement}"}>Show</.link>
+    </div>
+    <.link navigate={~p"/daily_measurements/#{daily_measurement}/edit"}>Edit</.link>
+  </:action>
+  <:action :let={daily_measurement}>
+    <.link href={~p"/daily_measurements/#{daily_measurement}"} method="delete" data-confirm="Are you sure?">
+      Delete
+    </.link>
+  </:action>
+</.table>

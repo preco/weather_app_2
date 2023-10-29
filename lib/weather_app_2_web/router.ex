@@ -19,6 +19,7 @@ defmodule WeatherApp2Web.Router do
 
     get "/", PageController, :home
     resources "/measurements", MeasurementController
+    resources "/daily_measurements", DailyMeasurementController
   end
 
   # Other scopes may use custom stacks.

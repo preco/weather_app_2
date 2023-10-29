@@ -1,0 +1,9 @@
+<.simple_form :let={f} for={@changeset} action={@action}>
+  <.error :if={@changeset.action}>
+    Oops, something went wrong! Please check the errors below.
+  </.error>
+  <.input field={f[:precipitation_of_the_day]} type="number" label="Precipitation of the day" step="any" />
+  <:actions>
+    <.button>Save Daily measurement</.button>
+  </:actions>
+</.simple_form>
