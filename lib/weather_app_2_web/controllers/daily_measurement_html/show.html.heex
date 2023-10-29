@@ -1,0 +1,16 @@
+<.header>
+  Daily measurement <%= @daily_measurement.id %>
+  <:subtitle>This is a daily_measurement record from your database.</:subtitle>
+  <:actions>
+    <.link href={~p"/daily_measurements/#{@daily_measurement}/edit"}>
+      <.button>Edit daily_measurement</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.list>
+  <:item title="Precipitation of the day"><%= @daily_measurement.precipitation_of_the_day %></:item>
+  <:item title="Data da medição"><%= WeatherApp2.Utils.formatted_date(@daily_measurement.inserted_at) %></:item>
+</.list>
+
+<.back navigate={~p"/daily_measurements"}>Back to daily_measurements</.back>

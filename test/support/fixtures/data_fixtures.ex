@@ -22,4 +22,18 @@ defmodule WeatherApp2.DataFixtures do
 
     measurement
   end
+
+  @doc """
+  Generate a daily_measurement.
+  """
+  def daily_measurement_fixture(attrs \\ %{}) do
+    {:ok, daily_measurement} =
+      attrs
+      |> Enum.into(%{
+        precipitation_of_the_day: 120.5
+      })
+      |> WeatherApp2.Data.create_daily_measurement()
+
+    daily_measurement
+  end
 end

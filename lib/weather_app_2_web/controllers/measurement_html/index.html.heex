@@ -14,7 +14,7 @@
   <:col :let={measurement} label="Velocidade do vento"><%= measurement.wind_speed %></:col>
   <:col :let={measurement} label="Direção do vento"><%= measurement.wind_direction %></:col>
   <:col :let={measurement} label="Nível do rio"><%= measurement.river_level %></:col>
-  <:col :let={measurement} label="Horário da medição"><%= measurement.inserted_at %></:col>
+  <:col :let={measurement} label="Horário da medição"><%= WeatherApp2.Utils.formatted_date_time(measurement.inserted_at) %></:col>
   <:action :let={measurement}>
     <div class="sr-only">
       <.link navigate={~p"/measurements/#{measurement}"}>Show</.link>
