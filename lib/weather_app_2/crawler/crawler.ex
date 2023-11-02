@@ -4,6 +4,7 @@ defmodule WeatherApp2.Crawler do
   convertê-los para o formato do banco de dados e
   salvá-los.
   """
+
   @moduledoc since: "1.0.0"
 
   require Logger
@@ -13,40 +14,36 @@ defmodule WeatherApp2.Crawler do
   """
   def get_url_info() do
     Logger.info("Iniciando crawler")
-    url = "https://plantaragronomia.eng.br/climatologia-agricola"
-    case HTTPoison.get(url) do
-      {:ok, %HTTPoison.Response{status_code: 200, body: body}} ->
-        handle_table_info(body)
-      {:ok, %HTTPoison.Response{status_code: 404}} ->
-        Logger.info "Not found"
-      {_, %HTTPoison.Response{status_code: 500}} ->
-        get_url_info()
-      {:error, %HTTPoison.Error{reason: reason}} ->
-        IO.inspect reason
-    end
+    command = "chromium-browser"
+    args = ["--headless",
+            "--disable-gpu",
+            "--dump-dom https://plantaragronomia.eng.br/climatologia-agricola",
+            "--virtual-time-budget=10000"]
+
+    str = []
+    {result, _} = System.shell(command <> " " <> Enum.join(args, " "), into: str)
+    result = result |> Enum.reduce("", fn x, acc -> acc <> " " <> x end)
+    handle_table_info(result) |> Logger.info
   end
 
   defp handle_table_info(body) do
     body
     |> get_table_info
-    |> IO.inspect
-    #|> save
+    |> remove_unused_fields
+    |> save
   end
 
   defp save(measurement) do
-    WeatherApp2.Repo.insert("Measurements", measurement)
+    WeatherApp2.Repo.insert(measurement)
   end
 
   defp get_table_info(body) do
+    {:ok, body} = body |> Floki.parse_document
     body
-      |> Floki.parse_document
       |> IO.inspect
       |> Floki.find("#clima-data-wrp")
-      |> IO.inspect
       |> Floki.find("table")
-      |> IO.inspect
       |> Floki.find("tr")
-      |> IO.inspect
       |> Enum.reduce(Map.new, fn(column, attr_map) ->
         {_, [_],
         [{_,_, [attr_name]},
@@ -74,6 +71,10 @@ defmodule WeatherApp2.Crawler do
       |> normalize_string
       |> String.replace(",", ".")
     Regex.replace(~r/[^0-9.NSEO]+/, value_without_comma, "")
+  end
+
+  def remove_unused_fields(measurement) do
+    Map.filter(measurement, fn {k, _v} -> is_atom(k) end )
   end
 
   defp normalize_string(raw) do

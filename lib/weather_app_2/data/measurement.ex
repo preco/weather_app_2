@@ -28,7 +28,7 @@ defmodule WeatherApp2.Data.Measurement do
     case name do
       "Temperatura" -> :temperature
       "Umidade relativa do ar" -> :humidity
-      "Pressão atmosférica" -> :atmospheric_pressure
+      "Pressão Atmosférica" -> :atmospheric_pressure
       "Velocidade do vento" -> :wind_speed
       "Direção do vento" -> :wind_direction
       "Nível do Rio Tubarão" -> :river_level
