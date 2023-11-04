@@ -5,7 +5,6 @@ defmodule WeatherApp2Web.MeasurementController do
   alias WeatherApp2.Data.Measurement
 
   def index(conn, _params) do
-    WeatherApp2.Crawler.get_url_info()
     measurements = Data.list_measurements()
     render(conn, :index, measurements: measurements)
   end

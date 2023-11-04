@@ -11,6 +11,8 @@ defmodule WeatherApp2.Crawler do
 
   @doc """
   Função responsável por acessar o site
+  Para executar essa função, é necessário que o Sistema Operacional
+  possua o chromium Code{sudo apt install chromium-browser}
   """
   def get_url_info() do
     Logger.info("Iniciando crawler")
@@ -23,24 +25,19 @@ defmodule WeatherApp2.Crawler do
     str = []
     {result, _} = System.shell(command <> " " <> Enum.join(args, " "), into: str)
     result = result |> Enum.reduce("", fn x, acc -> acc <> " " <> x end)
-    handle_table_info(result) |> Logger.info
+    handle_table_info(result)
   end
 
   defp handle_table_info(body) do
     body
     |> get_table_info
     |> remove_unused_fields
-    |> save
-  end
-
-  defp save(measurement) do
-    WeatherApp2.Repo.insert(measurement)
+    |> WeatherApp2.Data.create_measurement
   end
 
   defp get_table_info(body) do
     {:ok, body} = body |> Floki.parse_document
     body
-      |> IO.inspect
       |> Floki.find("#clima-data-wrp")
       |> Floki.find("table")
       |> Floki.find("tr")
