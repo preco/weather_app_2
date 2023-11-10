@@ -5,7 +5,7 @@ defmodule WeatherApp2.Data.DailyMeasurement do
   schema "daily_measurements" do
     field :precipitation_of_the_day, :float
 
-    timestamps(type: :utc_datetime)
+    timestamps()
   end
 
   @doc false

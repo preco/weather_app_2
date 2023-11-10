@@ -70,7 +70,7 @@ defmodule WeatherApp2.Crawler do
     Regex.replace(~r/[^0-9.NSEO]+/, value_without_comma, "")
   end
 
-  def remove_unused_fields(measurement) do
+  defp remove_unused_fields(measurement) do
     Map.filter(measurement, fn {k, _v} -> is_atom(k) end )
   end
 

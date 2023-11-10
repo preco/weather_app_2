@@ -9,8 +9,9 @@ defmodule WeatherApp2.Data.Measurement do
     field :wind_speed, :float
     field :wind_direction, :string
     field :river_level, :float
+    field :measured_at, :naive_datetime
 
-    timestamps(type: :utc_datetime)
+    timestamps()
   end
 
   @doc false

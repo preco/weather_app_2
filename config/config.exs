@@ -65,4 +65,12 @@ config :phoenix, :json_library, Jason
 # of this file so it overrides the configuration defined above.
 import_config "#{config_env()}.exs"
 
+# Timezone configuration for database saving purposes
 config :elixir, :time_zone_database, Tz.TimeZoneDatabase
+
+# Scheduler configuration
+config :weather_app_2, WeatherApp2.Scheduler,
+  jobs: [
+    # Every 30 minutes
+    {"*/30 * * * *",   fn -> WeatherApp2.Crawler.get_url_info end}
+  ]
