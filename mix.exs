@@ -51,7 +51,7 @@ defmodule WeatherApp2.MixProject do
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.1.1"},
       {:plug_cowboy, "~> 2.5"},
-      {:tz, "~> 0.26.2"},
+      {:timex, "~> 3.7"},
       {:quantum, "~> 3.5"}
     ]
   end

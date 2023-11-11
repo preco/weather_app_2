@@ -37,6 +37,13 @@ defmodule WeatherApp2.Crawler do
 
   defp get_table_info(body) do
     {:ok, body} = body |> Floki.parse_document
+    measurement = body |> extract_measurements
+    measured_at = body |> extract_measurement_date
+
+    measurement |> Map.put(:measured_at, measured_at)
+  end
+
+  defp extract_measurements(body) do
     body
       |> Floki.find("#clima-data-wrp")
       |> Floki.find("table")
@@ -49,6 +56,15 @@ defmodule WeatherApp2.Crawler do
         converted_name = convert_name(attr_name)
         Map.put(attr_map, converted_name, convert_value(converted_name, attr_value))
       end)
+  end
+
+  defp extract_measurement_date(body) do
+    body
+      |> Floki.find("#clima-data-wrp")
+      |> Floki.find("p")
+      |> Floki.text
+      |> String.replace(~r/.* (\d{1,2}\/\d{1,2}\/\d{2}\ \d{2}:\d{2}:\d{2}).*/, "\\1")
+      |> Timex.parse!("%-d/%-m/%y %T", :strftime)
   end
 
   defp convert_name(name) do

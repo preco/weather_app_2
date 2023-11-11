@@ -17,8 +17,8 @@ defmodule WeatherApp2.Data.Measurement do
   @doc false
   def changeset(measurement, attrs) do
     measurement
-    |> cast(attrs, [:temperature, :humidity, :atmospheric_pressure, :wind_speed, :wind_direction, :river_level])
-    |> validate_required([:temperature, :humidity, :atmospheric_pressure, :wind_speed, :wind_direction, :river_level])
+    |> cast(attrs, [:temperature, :humidity, :atmospheric_pressure, :wind_speed, :wind_direction, :river_level, :measured_at])
+    |> validate_required([:temperature, :humidity, :atmospheric_pressure, :wind_speed, :wind_direction, :river_level, :measured_at])
   end
 
   @doc """
