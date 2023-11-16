@@ -17,7 +17,9 @@ defmodule WeatherApp2.Application do
       # Start a worker by calling: WeatherApp2.Worker.start_link(arg)
       # {WeatherApp2.Worker, arg},
       # Start to serve requests, typically the last entry
-      WeatherApp2Web.Endpoint
+      WeatherApp2Web.Endpoint,
+      # Start the scheduler
+      WeatherApp2.Scheduler
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
