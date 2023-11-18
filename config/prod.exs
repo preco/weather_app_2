@@ -21,11 +21,11 @@ config :logger, level: :info
 # of environment variables, is done on config/runtime.exs.
 # Configure your database
 config :weather_app_2, WeatherApp2.Repo,
-  maintenance_database: "defaultdb",
   stacktrace: true,
   show_sensitive_data_on_connection_error: true,
   ssl: true,
-  pool_size: 10,
   ssl_opts: [
-    cacertfile: "priv/cert/ca.pem"
-  ]
+    server_name_indication: 'ep-still-brook-67652658-pooler.us-east-2.aws.neon.tech',
+    verify: :verify_none
+  ],
+  pool_size: 10
