@@ -22,21 +22,55 @@ defmodule WeatherApp2.Crawler do
             "--dump-dom https://plantaragronomia.eng.br/climatologia-agricola",
             "--virtual-time-budget=10000"]
 
-    str = []
-    {result, _} = System.shell(command <> " " <> Enum.join(args, " "), into: str)
-    result = result |> Enum.reduce("", fn x, acc -> acc <> " " <> x end)
-    handle_table_info(result)
+    case System.shell(command <> " " <> Enum.join(args, " "), into: []) do
+      {result, 0} -> result
+                      |> Enum.reduce("", fn x, acc -> acc <> " " <> x end)
+                      |> handle_table_info
+      {_, status} -> Logger.error("Chamada retornou #{status}")
+    end
+    Logger.info("Crawler finalizado")
   end
 
   defp handle_table_info(body) do
     body
-    |> get_table_info
-    |> remove_unused_fields
-    |> WeatherApp2.Data.create_measurement
+      |> get_page_info
+      |> case do
+        {:ok, body} -> create_measurement(body)
+        {error, msg} -> Logger.error("Erro ao obter dados (#{error}): #{msg}\n#{String.replace(body, ~r/\n/, "")}")
+    end
+  end
+
+  defp create_measurement(body) do
+    body
+      |> get_table_info
+      |> remove_unused_fields
+      |> WeatherApp2.Data.create_measurement
+      |> case do
+        {:ok, measurement} -> Logger.info("Medição realizada em #{WeatherApp2.Utils.formatted_date_time measurement.measured_at}")
+        {:error, error} -> Logger.error("Erro ao criar medição #{error}")
+      end
+  end
+
+  defp get_page_info(body) do
+    body
+      |> Floki.parse_document
+      |> case do
+        {:ok, body} -> check_if_table_exists(body)
+        {_, msg} -> {:unable_to_parse, msg}
+      end
+  end
+
+  defp check_if_table_exists(body) do
+    body
+      |> Floki.find("#clima-data-wrp")
+      |> case do
+        [] -> {:table_not_found, "Tabela não encontrada"}
+        [found] -> {:ok, found}
+      end
   end
 
   defp get_table_info(body) do
-    {:ok, body} = body |> Floki.parse_document
+
     measurement = body |> extract_measurements
     measured_at = body |> extract_measurement_date
 
