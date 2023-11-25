@@ -35,3 +35,5 @@ weather_app_2-*.tar
 npm-debug.log
 /assets/node_modules/
 
+# Log files
+/logs/
