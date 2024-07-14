@@ -1,0 +1,17 @@
+version: "3.5"
+
+
+networks:
+  webnet:
+    driver: overlay
+    attachable: true # Needed in order to run custom commands in the container
+
+services:
+  weather_app:
+    image: weather_app:0.0.1
+    ports:
+      - "4000:4000"
+    env_file:
+      - priv/.env
+    networks:
+      - webnet

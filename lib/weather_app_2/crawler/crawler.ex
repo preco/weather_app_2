@@ -16,8 +16,9 @@ defmodule WeatherApp2.Crawler do
   """
   def get_url_info() do
     Logger.info("Iniciando crawler")
-    command = "chromium-browser"
-    args = ["--headless",
+    command = "chromium"
+    args = ["--no-sandbox",
+            "--headless",
             "--disable-gpu",
             "--dump-dom https://plantaragronomia.eng.br/climatologia-agricola",
             "--virtual-time-budget=10000"]
