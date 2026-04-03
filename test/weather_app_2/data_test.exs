@@ -21,7 +21,15 @@ defmodule WeatherApp2.DataTest do
     end
 
     test "create_measurement/1 with valid data creates a measurement" do
-      valid_attrs = %{temperature: 120.5, humidity: 120.5, atmospheric_pressure: 120.5, wind_speed: 120.5, wind_direction: "some wind_direction", river_level: 120.5}
+      valid_attrs = %{
+        temperature: 120.5,
+        humidity: 120.5,
+        atmospheric_pressure: 120.5,
+        wind_speed: 120.5,
+        wind_direction: "some wind_direction",
+        river_level: 120.5,
+        measured_at: ~N[2026-01-01 00:00:00]
+      }
 
       assert {:ok, %Measurement{} = measurement} = Data.create_measurement(valid_attrs)
       assert measurement.temperature == 120.5

@@ -1,14 +1,24 @@
 import Config
 
+# Load environment variables from priv/.env if it exists
+if File.exists?("priv/.env") do
+  "priv/.env"
+  |> File.read!()
+  |> String.split("\n", trim: true)
+  |> Enum.each(fn line ->
+    case String.split(line, "=", parts: 2) do
+      [key, value] -> System.put_env(key, String.trim(value))
+      _ -> :ok
+    end
+  end)
+end
+
 # Configure your database
 config :weather_app_2, WeatherApp2.Repo,
-  username: "postgres",
-  password: "postgres",
-  hostname: "localhost",
-  database: "weather_app_2_dev",
+  url: System.get_env("DATABASE_URL") || "ecto://postgres:postgres@localhost/weather_app_2_dev",
+  pool_size: 10,
   stacktrace: true,
-  show_sensitive_data_on_connection_error: true,
-  pool_size: 10
+  show_sensitive_data_on_connection_error: true
 
 # For development, we disable any cache and enable
 # debugging and code reloading.

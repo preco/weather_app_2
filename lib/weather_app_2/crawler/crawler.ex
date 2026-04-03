@@ -1,142 +1,153 @@
 defmodule WeatherApp2.Crawler do
-  @moduledoc  """
-  Módulo responsável por obter os valores das medições,
-  convertê-los para o formato do banco de dados e
-  salvá-los.
+  @moduledoc """
+  Modulo responsavel por obter os valores das mediciones do endpoint JSON.
   """
-
-  @moduledoc since: "1.0.0"
 
   require Logger
 
-  @doc """
-  Função responsável por acessar o site
-  Para executar essa função, é necessário que o Sistema Operacional
-  possua o chromium Code{sudo apt install chromium-browser}
-  """
-  def get_url_info() do
-    Logger.info("Iniciando crawler")
-    command = "chromium"
-    args = ["--no-sandbox",
-            "--headless",
-            "--disable-gpu",
-            "--dump-dom https://plantaragronomia.eng.br/climatologia-agricola",
-            "--virtual-time-budget=10000"]
+  @endpoint "https://plantaragronomia.eng.br/ecowiit-realtime?region=tubarao"
 
-    case System.shell(command <> " " <> Enum.join(args, " "), into: []) do
-      {result, 0} -> result
-                      |> Enum.reduce("", fn x, acc -> acc <> " " <> x end)
-                      |> handle_table_info
-      {_, status} -> Logger.error("Chamada retornou #{status}")
-    end
-    Logger.info("Crawler finalizado")
-  end
-
-  defp handle_table_info(body) do
-    body
-      |> get_page_info
-      |> case do
-        {:ok, body} -> create_measurement(body)
-        {error, msg} -> Logger.error("Erro ao obter dados (#{error}): #{msg}\n#{String.replace(body, ~r/\n/, "")}")
+  @doc "Busca e persiste um registro de medicao a partir do endpoint remoto."
+  def get_url_info do
+    with {:ok, payload} <- fetch_json(),
+         {:ok, measurement} <- build_measurement(payload),
+         {:ok, _record} <- WeatherApp2.Data.create_measurement(Map.from_struct(measurement)) do
+      Logger.info("Medicao salva: #{inspect(measurement)}")
+      {:ok, measurement}
+    else
+      {:error, reason} = error ->
+        Logger.error("Falha na ingestao de medicao: #{inspect(reason)}")
+        error
     end
   end
 
-  defp create_measurement(body) do
-    body
-      |> get_table_info
-      |> remove_unused_fields
-      |> WeatherApp2.Data.create_measurement
-      |> case do
-        {:ok, measurement} -> Logger.info("Medição realizada em #{WeatherApp2.Utils.formatted_date_time measurement.measured_at}")
-        {:error, error} -> Logger.error("Erro ao criar medição #{error}")
+  @doc "Busca o JSON do endpoint e decodifica para map."
+  def fetch_json do
+    Finch.build(:get, @endpoint)
+    |> Finch.request(WeatherApp2.Finch)
+    |> case do
+      {:ok, %Finch.Response{status: 200, body: body}} -> Jason.decode(body)
+      {:ok, %Finch.Response{status: status}} -> {:error, {:http_status, status}}
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  @doc "Constrói a struct Measurement do JSON recebido."
+  def build_measurement(%{"data" => data}) do
+    with {:ok, temp_f} <- fetch_in_value(data, ["outdoor", "temperature", "value"]),
+         {:ok, humidity} <- fetch_in_value(data, ["outdoor", "humidity", "value"]),
+         {:ok, pressure_inhg} <- fetch_in_value(data, ["pressure", "relative", "value"]),
+         {:ok, wind_mph} <- fetch_in_value(data, ["wind", "wind_speed", "value"]),
+         {:ok, wind_deg} <- fetch_in_value(data, ["wind", "wind_direction", "value"]),
+         {:ok, time_unix} <- fetch_in_value(data, ["outdoor", "temperature", "time"]),
+         {:ok, temperature} <- to_celsius(temp_f),
+         {:ok, atmospheric_pressure} <- inhg_to_hpa(pressure_inhg),
+         {:ok, wind_speed} <- mph_to_kmh(wind_mph),
+         {:ok, wind_direction} <- degrees_to_cardinal(wind_deg),
+         {:ok, measured_at} <- parse_measured_at(time_unix) do
+      {:ok,
+       %WeatherApp2.Data.Measurement{
+         temperature: temperature,
+         humidity: humidity,
+         atmospheric_pressure: atmospheric_pressure,
+         wind_speed: wind_speed,
+         wind_direction: wind_direction,
+         river_level: 0.0,
+         measured_at: measured_at
+       }}
+    end
+  end
+
+  defp fetch_in_value(data, path) do
+    case get_in(data, path) do
+      nil -> {:error, {:missing_field, path}}
+      value -> to_number(value)
+    end
+  end
+
+  defp to_number(value) when is_number(value), do: {:ok, value}
+
+  defp to_number(value) when is_binary(value) do
+    case Float.parse(value) do
+      {num, _} -> {:ok, num}
+      :error -> {:error, {:parse_number_error, value}}
+    end
+  end
+
+  @doc "Converte temperatura de Fahrenheit para Celsius."
+  def to_celsius(value) when is_number(value), do: {:ok, (value - 32) * 5 / 9}
+
+  def to_celsius(value) when is_binary(value) do
+    with {:ok, num} <- to_number(value), do: to_celsius(num)
+  end
+
+  @doc "Converte pressao de inHg para hPa."
+  def inhg_to_hpa(value) when is_number(value), do: {:ok, value * 33.8639}
+
+  def inhg_to_hpa(value) when is_binary(value) do
+    with {:ok, num} <- to_number(value), do: inhg_to_hpa(num)
+  end
+
+  @doc "Converte velocidade de mph para km/h."
+  def mph_to_kmh(value) when is_number(value), do: {:ok, value * 1.60934}
+
+  def mph_to_kmh(value) when is_binary(value) do
+    with {:ok, num} <- to_number(value), do: mph_to_kmh(num)
+  end
+
+  @doc "Converte graus para direcao cardinal."
+  def degrees_to_cardinal(value) when is_number(value) do
+    degrees = normalize_degrees(value)
+
+    cardinal =
+      cond do
+        degrees < 11.25 -> "N"
+        degrees < 33.75 -> "NNE"
+        degrees < 56.25 -> "NE"
+        degrees < 78.75 -> "ENE"
+        degrees < 101.25 -> "L"
+        degrees < 123.75 -> "ESE"
+        degrees < 146.25 -> "SE"
+        degrees < 168.75 -> "SSE"
+        degrees < 191.25 -> "S"
+        degrees < 213.75 -> "SSO"
+        degrees < 236.25 -> "SO"
+        degrees < 258.75 -> "OSO"
+        degrees < 281.25 -> "O"
+        degrees < 303.75 -> "ONO"
+        degrees < 326.25 -> "NO"
+        degrees < 348.75 -> "NNO"
+        true -> "N"
       end
+
+    {:ok, cardinal}
   end
 
-  defp get_page_info(body) do
-    body
-      |> Floki.parse_document
-      |> case do
-        {:ok, body} -> check_if_table_exists(body)
-        {_, msg} -> {:unable_to_parse, msg}
-      end
+  def degrees_to_cardinal(value) when is_binary(value) do
+    with {:ok, num} <- to_number(value), do: degrees_to_cardinal(num)
   end
 
-  defp check_if_table_exists(body) do
-    body
-      |> Floki.find("#clima-data-wrp")
-      |> case do
-        [] -> {:table_not_found, "Tabela não encontrada"}
-        [found] -> {:ok, found}
-      end
+  defp normalize_degrees(deg) when is_integer(deg) do
+    deg = rem(deg, 360)
+    if deg < 0, do: deg + 360, else: deg
   end
 
-  defp get_table_info(body) do
-
-    measurement = body |> extract_measurements
-    measured_at = body |> extract_measurement_date
-
-    measurement |> Map.put(:measured_at, measured_at)
+  defp normalize_degrees(deg) when is_float(deg) do
+    deg = deg - Float.floor(deg / 360) * 360
+    if deg < 0, do: deg + 360, else: deg
   end
 
-  defp extract_measurements(body) do
-    body
-      |> Floki.find("#clima-data-wrp")
-      |> Floki.find("table")
-      |> Floki.find("tr")
-      |> Enum.reduce(Map.new, fn(column, attr_map) ->
-        {_, [_],
-        [{_,_, [attr_name]},
-        {_, _, [attr_value]}]
-        } = column
-        converted_name = convert_name(attr_name)
-        Map.put(attr_map, converted_name, convert_value(converted_name, attr_value))
-      end)
+  defp normalize_degrees(deg), do: deg
+  defp parse_measured_at(value) when is_binary(value) do
+    case Integer.parse(value) do
+      {unix, _} -> parse_measured_at(unix)
+      :error -> {:error, {:invalid_timestamp, value}}
+    end
   end
 
-  defp extract_measurement_date(body) do
-    body
-      |> Floki.find("#clima-data-wrp")
-      |> Floki.find("p")
-      |> Floki.text
-      |> String.replace(~r/.* (\d{1,2}\/\d{1,2}\/\d{2}\ \d{2}:\d{2}:\d{2}).*/, "\\1")
-      |> Timex.parse!("%-d/%-m/%y %T", :strftime)
-  end
+  defp parse_measured_at(unix) when is_float(unix), do: parse_measured_at(round(unix))
 
-  defp convert_name(name) do
-    name
-    |> normalize_string
-    |> WeatherApp2.Data.Measurement.convert_name
-  end
-
-  defp convert_value(name, value) do
-    value
-    |> normalize_value
-    |> WeatherApp2.Data.Measurement.convert_value(name)
-  end
-
-  defp normalize_value(value) do
-    value_without_comma = value
-      |> normalize_string
-      |> String.replace(",", ".")
-    Regex.replace(~r/[^0-9.NSEO]+/, value_without_comma, "")
-  end
-
-  defp remove_unused_fields(measurement) do
-    Map.filter(measurement, fn {k, _v} -> is_atom(k) end )
-  end
-
-  defp normalize_string(raw) do
-    codepoints = String.codepoints(raw)
-    Enum.reduce(codepoints,
-      fn(w, result) ->
-        cond do
-          String.valid?(w) ->
-            result <> w
-          true ->
-            << parsed :: 8>> = w
-            result <>   << parsed :: utf8 >>
-        end
-      end)
-      |> String.trim
+  defp parse_measured_at(unix) when is_integer(unix) do
+    with {:ok, dt} <- DateTime.from_unix(unix), do: {:ok, DateTime.to_naive(dt)}
   end
 end
