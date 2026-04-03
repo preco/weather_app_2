@@ -7,6 +7,12 @@
   </:actions>
 </.header>
 
+<div class="mt-4">
+  <.form for={%{}} action={~p"/measurements/fetch"} method="post">
+    <.button>Obter medição</.button>
+  </.form>
+</div>
+
 <.table id="measurements" rows={@measurements} row_click={&JS.navigate(~p"/measurements/#{&1}")}>
   <:col :let={measurement} label="Temperatura"><%= measurement.temperature %></:col>
   <:col :let={measurement} label="Umidade"><%= measurement.humidity %></:col>

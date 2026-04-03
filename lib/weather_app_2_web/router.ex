@@ -19,6 +19,7 @@ defmodule WeatherApp2Web.Router do
 
     get "/", PageController, :home
     resources "/measurements", MeasurementController
+    post "/measurements/fetch", MeasurementController, :fetch_from_crawler
     resources "/daily_measurements", DailyMeasurementController
   end
 

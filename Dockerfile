@@ -1,11 +1,10 @@
 FROM elixir:latest
 
-# Download Chromium (needed for the crawling process)
+# Setup base dependencies
 RUN apt-get update && \
     apt-get install -y \
-    build-essential \
-    chromium
-    
+    build-essential
+
 # Create and set home directory
 WORKDIR /opt/weather_app
 

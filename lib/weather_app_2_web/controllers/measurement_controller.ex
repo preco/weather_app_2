@@ -59,4 +59,18 @@ defmodule WeatherApp2Web.MeasurementController do
     |> put_flash(:info, "Measurement deleted successfully.")
     |> redirect(to: ~p"/measurements")
   end
+
+  def fetch_from_crawler(conn, _params) do
+    case WeatherApp2.Crawler.get_url_info() do
+      {:ok, measurement} ->
+        conn
+        |> put_flash(:info, "Medicao obtida e salva com sucesso.")
+        |> redirect(to: ~p"/measurements")
+
+      {:error, reason} ->
+        conn
+        |> put_flash(:error, "Falha ao obter medicao: #{inspect(reason)}")
+        |> redirect(to: ~p"/measurements")
+    end
+  end
 end

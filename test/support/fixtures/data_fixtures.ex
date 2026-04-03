@@ -16,7 +16,8 @@ defmodule WeatherApp2.DataFixtures do
         river_level: 120.5,
         temperature: 120.5,
         wind_direction: "some wind_direction",
-        wind_speed: 120.5
+        wind_speed: 120.5,
+        measured_at: ~N[2026-01-01 00:00:00]
       })
       |> WeatherApp2.Data.create_measurement()
 

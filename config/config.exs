@@ -74,5 +74,5 @@ config :elixir, :time_zone_database, Tz.TimeZoneDatabase
 config :weather_app_2, WeatherApp2.Scheduler,
   jobs: [
     # Every 15 minutes
-    {"*/15 * * * *",   fn -> WeatherApp2.Crawler.get_url_info end}
+    {"*/15 * * * *", {WeatherApp2.Crawler, :get_url_info, []}}
   ]

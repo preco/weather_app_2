@@ -3,9 +3,9 @@ defmodule WeatherApp2Web.MeasurementControllerTest do
 
   import WeatherApp2.DataFixtures
 
-  @create_attrs %{temperature: 120.5, humidity: 120.5, atmospheric_pressure: 120.5, wind_speed: 120.5, wind_direction: "some wind_direction", river_level: 120.5}
-  @update_attrs %{temperature: 456.7, humidity: 456.7, atmospheric_pressure: 456.7, wind_speed: 456.7, wind_direction: "some updated wind_direction", river_level: 456.7}
-  @invalid_attrs %{temperature: nil, humidity: nil, atmospheric_pressure: nil, wind_speed: nil, wind_direction: nil, river_level: nil}
+  @create_attrs %{temperature: 120.5, humidity: 120.5, atmospheric_pressure: 120.5, wind_speed: 120.5, wind_direction: "some wind_direction", river_level: 120.5, measured_at: ~N[2026-01-01 00:00:00]}
+  @update_attrs %{temperature: 456.7, humidity: 456.7, atmospheric_pressure: 456.7, wind_speed: 456.7, wind_direction: "some updated wind_direction", river_level: 456.7, measured_at: ~N[2026-01-02 00:00:00]}
+  @invalid_attrs %{temperature: nil, humidity: nil, atmospheric_pressure: nil, wind_speed: nil, wind_direction: nil, river_level: nil, measured_at: nil}
 
   describe "index" do
     test "lists all measurements", %{conn: conn} do

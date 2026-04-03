@@ -38,3 +38,6 @@ npm-debug.log
 
 # Log files
 /logs/
+
+# Ignore editor-specific files and directories.
+.vscode/
