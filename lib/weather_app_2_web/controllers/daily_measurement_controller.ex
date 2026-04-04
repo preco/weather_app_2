@@ -4,9 +4,15 @@ defmodule WeatherApp2Web.DailyMeasurementController do
   alias WeatherApp2.Data
   alias WeatherApp2.Data.DailyMeasurement
 
+  def index(conn, %{"page" => page_param} = _params) do
+    page = parse_page(page_param)
+    pagination = Data.list_daily_measurements_paginated(page)
+    render(conn, :index, daily_measurements: pagination.entries, pagination: pagination)
+  end
+
   def index(conn, _params) do
-    daily_measurements = Data.list_daily_measurements()
-    render(conn, :index, daily_measurements: daily_measurements)
+    pagination = Data.list_daily_measurements_paginated(1)
+    render(conn, :index, daily_measurements: pagination.entries, pagination: pagination)
   end
 
   def new(conn, _params) do
@@ -59,4 +65,13 @@ defmodule WeatherApp2Web.DailyMeasurementController do
     |> put_flash(:info, "Daily measurement deleted successfully.")
     |> redirect(to: ~p"/daily_measurements")
   end
+
+  defp parse_page(value) when is_binary(value) do
+    case Integer.parse(value) do
+      {n, ""} when n > 0 -> n
+      _ -> 1
+    end
+  end
+
+  defp parse_page(_), do: 1
 end

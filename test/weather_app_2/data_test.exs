@@ -3,10 +3,11 @@ defmodule WeatherApp2.DataTest do
 
   alias WeatherApp2.Data
 
-  describe "measurements" do
-    alias WeatherApp2.Data.Measurement
+  import WeatherApp2.DataFixtures
 
-    import WeatherApp2.DataFixtures
+  describe "measurements" do
+
+    alias WeatherApp2.Data.Measurement
 
     @invalid_attrs %{temperature: nil, humidity: nil, atmospheric_pressure: nil, wind_speed: nil, wind_direction: nil, river_level: nil}
 
@@ -77,8 +78,6 @@ defmodule WeatherApp2.DataTest do
 
   describe "daily_measurements" do
     alias WeatherApp2.Data.DailyMeasurement
-
-    import WeatherApp2.DataFixtures
 
     @invalid_attrs %{precipitation_of_the_day: nil}
 

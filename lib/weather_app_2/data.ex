@@ -3,7 +3,7 @@ defmodule WeatherApp2.Data do
   The Data context.
   """
 
-  import Ecto.Query, warn: false
+  import Ecto.Query
   alias WeatherApp2.Repo
 
   alias WeatherApp2.Data.Measurement
@@ -20,6 +20,35 @@ defmodule WeatherApp2.Data do
   def list_measurements do
     Repo.all(Measurement)
   end
+
+  @doc """
+  Retorna uma página de measurements ordenados por inserted_at DESC.
+  Sempre 10 registros por página.
+  """
+  def list_measurements_paginated(page) when is_integer(page) and page > 0 do
+    page_size = 10
+    offset = (page - 1) * page_size
+
+    total_count = Repo.aggregate(Measurement, :count, :id)
+    total_pages = max(div(total_count + page_size - 1, page_size), 1)
+
+    entries =
+      from(m in Measurement,
+        order_by: [desc: m.inserted_at],
+        limit: ^page_size,
+        offset: ^offset
+      )
+      |> Repo.all()
+
+    %{
+      entries: entries,
+      page: page,
+      total_pages: total_pages,
+      total_count: total_count
+    }
+  end
+
+  def list_measurements_paginated(_), do: list_measurements_paginated(1)
 
   @doc """
   Gets a single measurement.
@@ -116,6 +145,35 @@ defmodule WeatherApp2.Data do
   def list_daily_measurements do
     Repo.all(DailyMeasurement)
   end
+
+  @doc """
+  Retorna uma página de daily_measurements ordenados por inserted_at DESC.
+  Sempre 10 registros por página.
+  """
+  def list_daily_measurements_paginated(page) when is_integer(page) and page > 0 do
+    page_size = 10
+    offset = (page - 1) * page_size
+
+    total_count = Repo.aggregate(DailyMeasurement, :count, :id)
+    total_pages = max(div(total_count + page_size - 1, page_size), 1)
+
+    entries =
+      from(dm in DailyMeasurement,
+        order_by: [desc: dm.inserted_at],
+        limit: ^page_size,
+        offset: ^offset
+      )
+      |> Repo.all()
+
+    %{
+      entries: entries,
+      page: page,
+      total_pages: total_pages,
+      total_count: total_count
+    }
+  end
+
+  def list_daily_measurements_paginated(_), do: list_daily_measurements_paginated(1)
 
   @doc """
   Gets a single daily_measurement.
