@@ -23,6 +23,12 @@ defmodule WeatherApp2Web.Router do
     resources "/daily_measurements", DailyMeasurementController
   end
 
+  scope "/", WeatherApp2Web do
+    pipe_through :api
+
+    get "/health", HealthController, :index
+  end
+
   # Other scopes may use custom stacks.
   # scope "/api", WeatherApp2Web do
   #   pipe_through :api
