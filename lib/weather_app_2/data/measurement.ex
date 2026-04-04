@@ -22,8 +22,7 @@ defmodule WeatherApp2.Data.Measurement do
   end
 
   @doc """
-  Converte os nomes das colunas da tabela do site nos respectivos
-  atoms
+  Converts column names from the website table to corresponding atoms
   """
   def convert_name(name) do
     case name do
@@ -37,18 +36,18 @@ defmodule WeatherApp2.Data.Measurement do
     end
   end
 
+  defp parse_float(value) do
+    {parsed, _} = Float.parse(value)
+    parsed
+  end
+
   @doc """
-  Converte o valor para um formato aceito pelo banco de dados
+  Converts the value to a format accepted by the database
   """
   def convert_value(value, attr) do
     case attr do
       :wind_direction -> value
       _ -> parse_float(value)
     end
-  end
-
-  defp parse_float(value) do
-    {parsed, _} = Float.parse(value)
-    parsed
   end
 end

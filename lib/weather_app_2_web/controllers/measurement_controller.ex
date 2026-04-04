@@ -4,9 +4,15 @@ defmodule WeatherApp2Web.MeasurementController do
   alias WeatherApp2.Data
   alias WeatherApp2.Data.Measurement
 
+  def index(conn, %{"page" => page_param} = _params) do
+    page = parse_page(page_param)
+    pagination = Data.list_measurements_paginated(page)
+    render(conn, :index, measurements: pagination.entries, pagination: pagination)
+  end
+
   def index(conn, _params) do
-    measurements = Data.list_measurements()
-    render(conn, :index, measurements: measurements)
+    pagination = Data.list_measurements_paginated(1)
+    render(conn, :index, measurements: pagination.entries, pagination: pagination)
   end
 
   def new(conn, _params) do
@@ -62,7 +68,7 @@ defmodule WeatherApp2Web.MeasurementController do
 
   def fetch_from_crawler(conn, _params) do
     case WeatherApp2.Crawler.get_url_info() do
-      {:ok, measurement} ->
+      {:ok, _measurement} ->
         conn
         |> put_flash(:info, "Medicao obtida e salva com sucesso.")
         |> redirect(to: ~p"/measurements")
@@ -73,4 +79,13 @@ defmodule WeatherApp2Web.MeasurementController do
         |> redirect(to: ~p"/measurements")
     end
   end
+
+  defp parse_page(value) when is_binary(value) do
+    case Integer.parse(value) do
+      {n, ""} when n > 0 -> n
+      _ -> 1
+    end
+  end
+
+  defp parse_page(_), do: 1
 end

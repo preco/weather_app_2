@@ -33,3 +33,17 @@
     </.link>
   </:action>
 </.table>
+
+<div class="pagination mt-4">
+  <span>Página <%= @pagination.page %> de <%= @pagination.total_pages %> — <%= @pagination.total_count %> registros</span>
+
+  <div class="pagination-controls mt-2">
+    <%= if @pagination.page > 1 do %>
+      <.link href={"?page=#{@pagination.page - 1}"}>← Anterior</.link>
+    <% end %>
+
+    <%= if @pagination.page < @pagination.total_pages do %>
+      <.link href={"?page=#{@pagination.page + 1}"}>Próximo →</.link>
+    <% end %>
+  </div>
+</div>
